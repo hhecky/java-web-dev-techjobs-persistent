@@ -11,7 +11,6 @@ import org.springframework.validation.Errors;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,6 +21,9 @@ public class HomeController {
 
     @Autowired
     private EmployerRepository employerRepository;
+
+    @Autowired
+    private JobRepository jobRepository;
 
     @RequestMapping("")
     public String index(Model model) {
@@ -46,22 +48,17 @@ public class HomeController {
         if (errors.hasErrors()) {
             model.addAttribute("title", "Add Job");
             return "add";
-        }
+        } else {
 
-         //how do I get employer from drop down selection? , got by ID OR DID I????, how to get name into db?
-       // model.addAttribute("employerId", employerRepository.findById(employerId));
-        //model.addAttribute("employer", employer.name);
-//        Optional optEmployer = employerRepository.findById(employerId);
-//        Employer employer = (Employer) optEmployer.get();
-//        model.addAttribute("employer", employer);
-//        jobRepository.save(newJob);
-        //return "redirect:view/" + newJob.getId();
-
-        model.addAttribute("employer", employerRepository.findById(employerId));
-        model.addAttribute("employerId", newJob.getId());
-        model.addAttribute("employerName", newJob.getName());
-        jobRepository.save(newJob);
-        return "redirect:";
+         Optional<Employer> result = employerRepository.findById(employerId);
+            Employer employer = result.get();
+            model.addAttribute("title", "Add job to: " + employer.getName());
+            newJob.setEmployer(employer);
+            model.addAttribute("newJob", newJob); //from 18.5
+            jobRepository.save(newJob);
+            //model.addAttribute("jobId", newJob.getId());  not sure this is needed? trying to get /view/{jobId} to come up on webpage
+            return "redirect:/view/{jobId}";  //Model has no value for key 'jobId', but updating db correctly
+    }
     }
 
     @GetMapping("view/{jobId}")
